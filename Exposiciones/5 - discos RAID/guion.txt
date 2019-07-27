@@ -1,0 +1,47 @@
+
+Buenas tardes. A manera de introducción, el tema que nos corresponde presentar es Configuración de discos duros en modo RAID. 
+Primero es necesario entender dónde se ubica este tema en el contexto de la admnistración: estamos administrando recursos 
+en el nivel más bajo de abstracción, es decir, el nivel físico; esta administración se realiza a través del sistema operativo.
+A continuación explicaremos los detalles de RAID y al final veremos cómo implementar un arreglo RAID en Linux.
+
+------
+
+Para implementar un dispositivo RAID utilizaremos una máquina virtual con Archlinux. Las máquinas virtuales simulan discos con archivos
+de extensión .img, llamados imágenes. Desde la perspectiva del sistema operativo, estas imágenes son, de hecho, discos duros.
+Para verificar los discos disponibles usamos
+
+fdisk -l
+
+Observamos que tenemos tres discos disponibles: /dev/sda con 10 gb, /dev/sdb con 3 gb y /dev/sdc con 3 gb. No podemos utilizar /dev/sda porque es el disco que el sistema operativo utiliza, pero podemos utilizar los demás discos. Primero es necesario crear particiones en cada uno de estos discos:
+
+Para crear la partición en /dev/sdb usamos
+
+fdisk /dev/sdb
+
+Presionamos 'n' por new partition, luego 'p' para seleccionar una partición primaria y presionamos 1 para elegir la primera partición. 
+Luego nos pide el punto inicial de la nueva partición. Si presionamos enter comenzará al inicio del espacio libre disponible. Luego seleccionamos 
+el tamaño de la partición. Si presionamos <enter> la partición tomará todo el espacio disponible. Luego presionamos 't' por type para cambiar el tipo de la partición y escribimos fd (Linux raid). Finalmente escribimos 'w' para guardar los cambios.
+
+Repetimos los pasos anteriores en /dev/sdc.
+
+
+Para crear el dispositivo RAID usaremos mdadm, que es una utilidad de Linux para administrar y monitorear dispositivos RAID. Es un programa escrito en C que hace llamadas al sistema. 
+ 
+Ahora crearemos un dispositivo RAID de nivel 1 con las particiones sdb1 y sdc1:
+(si da errores, añadir --force)
+
+mdadm --create /dev/md127 --level 1 --raid-devices 2 /dev/sdb1 /dev/sdc1. 
+
+El dispositivo no está listo, para poder realizar operaciones de entrada y salida sobre él debemos crear en él un sistema de archivos:
+
+fmks -t ext4 /dev/md127
+
+ext4: fourth extended file system
+
+Para verificar nuestro dispositivo, volvemos a usar
+
+fdisk -l
+
+
+ 
+

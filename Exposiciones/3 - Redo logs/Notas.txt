@@ -1,0 +1,3 @@
+explicaron bien los redo
+
+global: 10
